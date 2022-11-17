@@ -7,7 +7,7 @@ import { SpawnUpdate, createSpawnSystem } from "./systems/spawn";
 
 export const initialiseWorld = () => {
     const world = createWorld();
-    const gameUpdates: Subject<SpawnUpdate> = new Subject();
+    const gameUpdates = new Subject<SpawnUpdate>();
 
     const pipeline = pipe(createSpawnSystem(gameUpdates));
 
