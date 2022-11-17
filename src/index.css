@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .header {
+        @apply p-8 border-b-2 border-gray-200 flex flex-row;
+    }
+
+    .container {
+        @apply p-8;
+    }
+
+    button {
+        @apply px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-md text-white font-medium transition;
+    }
+}
