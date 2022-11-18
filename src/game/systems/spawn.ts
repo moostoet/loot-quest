@@ -56,14 +56,17 @@ const spawn = (world: IWorld): SpawnData => {
 };
 
 export function createSpawnSystem(gameSubject: Subject<SpawnUpdate>) {
-    const monsters = defineQuery([Monster]);
+    console.log("createSpawnSystem with gameSubject: ", gameSubject);
+    const monsterQuery = defineQuery([Monster]);
     const spawnSubject: Subject<SpawnUpdate> = new Subject();
     gameSubject.subscribe(spawnSubject);
 
     return defineSystem((world) => {
-        const entities = monsters(world);
+        const monsters = monsterQuery(world);
+        console.log("monsters: ", monsters);
+        console.log(isEmpty(monsters));
 
-        if (isEmpty(entities)) {
+        if (monsters.length === 0) {
             const { type, stats } = spawn(world);
             gameSubject.next({
                 source: "spawn",

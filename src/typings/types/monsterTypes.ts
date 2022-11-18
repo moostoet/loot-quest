@@ -4,3 +4,8 @@ export const MonsterTypes = {
 } as const;
 
 export type MonsterTypes = typeof MonsterTypes[keyof typeof MonsterTypes];
+
+export const MonsterNames: Record<MonsterTypes, string> = {
+    [MonsterTypes.goblin]: 'Goblin',
+    [MonsterTypes.orc]: 'Orc',
+}

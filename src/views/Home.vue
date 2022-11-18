@@ -7,10 +7,10 @@
                 Welcome, [name]
             </p>
         </div>
-		<EnemySpawner/>
+		<CombatContainer/>
     </div>
 </template>
 
 <script setup lang="ts">
-import EnemySpawner from "../components/EnemySpawner.vue";
+import CombatContainer from "../components/CombatContainer.vue";
 </script>
