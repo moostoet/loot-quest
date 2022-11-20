@@ -24,8 +24,6 @@ const gameSubject = initialiseWorld();
 
 const enemy = ref<Enemy | null>(null);
 
-const parsedEnemyName = ref<string>("");
-
 const updateEnemy = (update: SpawnUpdate) => {
     console.log("updateEnemy");
     const enemyData = {
