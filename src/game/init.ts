@@ -1,19 +1,31 @@
 import { createWorld, addEntity, addComponent, pipe } from "bitecs";
 import { Subject } from "rxjs";
+import Player from "./components/player";
+import Stats from "./components/stats";
+import { CombatUpdate } from "./systems/combat";
 import { SpawnUpdate, createSpawnSystem } from "./systems/spawn";
 import { createTimeSystem } from "./systems/time";
 
+const createInitialTime = () => ({
+    then: performance.now(),
+    delta: 0,
+    elapsed: 0,
+});
+
 export const initialiseWorld = () => {
     const world = createWorld({
-        delta: 0,
-        elapsed: 0,
-        then: performance.now(),
+        time: createInitialTime(),
     });
-    const gameUpdates = new Subject<SpawnUpdate>();
+
+    const player = addEntity(world);
+    addComponent(world, Player, player);
+    addComponent(world, Stats, player);
+
+    const gameUpdates = new Subject<SpawnUpdate | CombatUpdate>();
 
     const pipeline = pipe(createTimeSystem(), createSpawnSystem(gameUpdates));
 
-    setInterval(() => pipeline(world), 1000/60);
+    setInterval(() => pipeline(world), 1000 / 60);
 
     return gameUpdates;
 };

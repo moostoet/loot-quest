@@ -17,6 +17,8 @@ import { initialiseWorld } from "../game/init";
 import { SpawnUpdate } from "../typings/types/updates/spawn";
 import { MonsterNames } from "../typings/types/monsterTypes";
 import Monster from "../game/components/monster";
+import { CombatUpdateBase } from "../typings/types/updates/combat";
+import { CombatUpdate } from "../game/systems/combat";
 
 const gameSubject = initialiseWorld();
 
@@ -34,9 +36,12 @@ const updateEnemy = (update: SpawnUpdate) => {
     set(enemy, enemyData);
 };
 
+const updateCombat = (update: CombatUpdate) => {
+    console.log(update);
+}
+
 const handleUpdate = cond([
     [propEq("source", "spawn"), updateEnemy],
-    [T, console.log.bind(console)],
 ]);
 
 const GameStateSubscriber: Observer<SpawnUpdate> = {

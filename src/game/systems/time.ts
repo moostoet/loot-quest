@@ -8,7 +8,6 @@ export function createTimeSystem() {
         world.time.delta = delta;
         world.time.elapsed += delta;
         world.time.then = now;
-        console.log(world.time);
         return world;
     });
 }
