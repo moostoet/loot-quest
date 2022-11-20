@@ -6,6 +6,8 @@ import { CombatUpdate } from "./systems/combat";
 import { SpawnUpdate, createSpawnSystem } from "./systems/spawn";
 import { createTimeSystem } from "./systems/time";
 
+export type GameUpdates = CombatUpdate | SpawnUpdate; 
+
 const createInitialTime = () => ({
     then: performance.now(),
     delta: 0,
@@ -21,8 +23,9 @@ export const initialiseWorld = () => {
     addComponent(world, Player, player);
     addComponent(world, Stats, player);
 
-    const gameUpdates = new Subject<SpawnUpdate | CombatUpdate>();
+    const gameUpdates = new Subject<GameUpdates>();
 
+    //@ts-ignore
     const pipeline = pipe(createTimeSystem(), createSpawnSystem(gameUpdates));
 
     setInterval(() => pipeline(world), 1000 / 60);
