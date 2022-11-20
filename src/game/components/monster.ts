@@ -1,7 +1,7 @@
-import { defineComponent, Types } from 'bitecs';
+import { defineComponent, Types } from 'bitecs'
 
 export const Monster = defineComponent({
-    type: Types.ui32,
-});
+  type: Types.ui32
+})
 
-export default Monster;
+export default Monster

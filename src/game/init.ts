@@ -1,34 +1,34 @@
-import { createWorld, addEntity, addComponent, pipe } from "bitecs";
-import { Subject } from "rxjs";
-import Player from "./components/player";
-import Stats from "./components/stats";
-import { CombatUpdate } from "./systems/combat";
-import { SpawnUpdate, createSpawnSystem } from "./systems/spawn";
-import { createTimeSystem } from "./systems/time";
+import { createWorld, addEntity, addComponent, pipe } from 'bitecs'
+import { Subject } from 'rxjs'
+import Player from './components/player'
+import Stats from './components/stats'
+import { CombatUpdate } from './systems/combat'
+import { SpawnUpdate, createSpawnSystem } from './systems/spawn'
+import { createTimeSystem } from './systems/time'
 
-export type GameUpdates = CombatUpdate | SpawnUpdate; 
+export type GameUpdate = CombatUpdate | SpawnUpdate
 
-const createInitialTime = () => ({
-    then: performance.now(),
-    delta: 0,
-    elapsed: 0,
-});
+const createInitialTime = (): { then: number, delta: number, elapsed: number } => ({
+  then: performance.now(),
+  delta: 0,
+  elapsed: 0
+})
 
-export const initialiseWorld = () => {
-    const world = createWorld({
-        time: createInitialTime(),
-    });
+export const initialiseWorld = (): Subject<GameUpdate> => {
+  const world = createWorld({
+    time: createInitialTime()
+  })
 
-    const player = addEntity(world);
-    addComponent(world, Player, player);
-    addComponent(world, Stats, player);
+  const player = addEntity(world)
+  addComponent(world, Player, player)
+  addComponent(world, Stats, player)
 
-    const gameUpdates = new Subject<GameUpdates>();
+  const gameUpdates = new Subject<GameUpdate>()
 
-    //@ts-ignore
-    const pipeline = pipe(createTimeSystem(), createSpawnSystem(gameUpdates));
+  // @ts-expect-error
+  const pipeline = pipe(createTimeSystem(), createSpawnSystem(gameUpdates))
 
-    setInterval(() => pipeline(world), 1000 / 60);
+  setInterval(() => pipeline(world), 1000 / 60)
 
-    return gameUpdates;
-};
+  return gameUpdates
+}

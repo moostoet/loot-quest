@@ -1,6 +1,6 @@
-import { UpdateBase } from "./base";
+import { UpdateBase } from './base'
 
-export type CombatUpdateBase<T, D = {}> = UpdateBase<"combat", D & { type: T }>;
+export type CombatUpdateBase<T, D = {}> = UpdateBase<'combat', D & { type: T }>
 
 // export type CombatUpdate = | CombatUpdateBase<
 //     "attack",

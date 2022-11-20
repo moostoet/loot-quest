@@ -1,5 +1,5 @@
-import { Time } from "./Time";
+import { Time } from './Time'
 
-export type GameWorld = {
-    time: Time;
+export interface GameWorld {
+  time: Time
 }

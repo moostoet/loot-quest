@@ -1,16 +1,16 @@
-import { createWebHistory, createRouter } from "vue-router";
+import { createWebHistory, createRouter } from 'vue-router'
 
 const routes = [
-	{
-		path: "/",
-		name: "Home",
-		component: () => import("../views/Home.vue"),
-	}
+  {
+    path: '/',
+    name: 'Home',
+    component: async () => { return await import('../views/Home.vue') }
+  }
 ]
 
 const router = createRouter({
-	history: createWebHistory(),
-	routes,
-});
+  history: createWebHistory(),
+  routes
+})
 
-export default router;
+export default router

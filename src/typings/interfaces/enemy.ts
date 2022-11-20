@@ -1,7 +1,7 @@
-import { MonsterTypes } from "../types/monsterTypes";
-import { IStats } from "./stats";
+import { MonsterList } from '../types/monsterTypes'
+import { IStats } from './stats'
 
 export interface Enemy {
-    type: MonsterTypes,
-    stats: IStats,
+  type: MonsterList
+  stats: IStats
 }
