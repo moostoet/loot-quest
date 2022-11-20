@@ -1,8 +1,16 @@
 <template>
-  <div v-if="enemy">
-    <p>
-      {{ MonsterNames[enemy.type] }}
-    </p>
+  <div class="flex flex-row gap-3">
+    <div>
+      <p>
+        {{}}
+      </p>
+    </div>
+    <div v-if="enemy">
+      <p>
+        {{ MonsterNames[enemy.type] }}
+        {{ enemy.stats }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -19,6 +27,7 @@ import { MonsterNames } from '../typings/types/monsterTypes'
 import Monster from '../game/components/monster'
 import { CombatUpdateBase } from '../typings/types/updates/combat'
 import { CombatUpdate } from '../game/systems/combat'
+import { pipe } from 'bitecs'
 
 const gameSubject = initialiseWorld()
 
@@ -43,10 +52,6 @@ const pipeBySource =
       .pipe(filter((u): u is U => u.source === source))
       .subscribe(observer)
   }
-
-const updateCombat = (update: CombatUpdate) => {
-  console.log(update)
-}
 
 // const handleUpdate = cond([
 //     [propEq("source", "spawn"), updateEnemy],
@@ -84,8 +89,28 @@ const updateEnemy: Observer<SpawnUpdate> = {
   }
 }
 
+const updateCombat: Observer<CombatUpdate> = {
+  next(update) {
+    console.log(update);
+    if (update.type === "attack") {
+        const enemyData = {
+            type: get(enemy)?.type,
+            stats: update.stats
+        }
+        set(enemy, enemyData);
+    }
+  },
+  error() {
+    console.log('error')
+  },
+  complete() {
+    console.log('complete')
+  }
+}
+
 onMounted(() => {
   console.log('mounted')
-    pipeBySource<SpawnUpdate, 'spawn'>('spawn')(updateEnemy)
+  pipeBySource<SpawnUpdate, 'spawn'>('spawn')(updateEnemy)
+  pipeBySource<CombatUpdate, 'combat'>('combat')(updateCombat)
 })
 </script>
