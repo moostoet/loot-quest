@@ -10,7 +10,19 @@ import { everyDelta } from '../util/everyDelta'
 export interface CombatData {
   attacker: number
   defender: number
-  stats?: {
+  playerStats?: {
+    health: number
+    attack: number
+    armor: number
+    shields: number
+  }
+  defenderStats?: {
+    health: number
+    attack: number
+    armor: number
+    shields: number
+  }
+  attackerStats?: {
     health: number
     attack: number
     armor: number
@@ -57,44 +69,58 @@ const combat = (
     defender
   }
 
-  doCombatTurn(attacker, defender, world)
+  if (world.turn.current === attacker) {
+    doCombatTurn(attacker, defender, world)
+  } else {
+    doCombatTurn(defender, attacker, world)
+  }
 
   const newCombatData = {
     ...combatData,
-    stats: {
+    defenderStats: {
       health: Stats.health[defender],
       attack: Stats.attack[defender],
       armor: Stats.armor[defender],
       shields: Stats.shields[defender]
+    },
+    attackerStats: {
+      health: Stats.health[attacker],
+      attack: Stats.attack[attacker],
+      armor: Stats.armor[attacker],
+      shields: Stats.shields[attacker]
     }
   }
 
   return newCombatData
 }
 
-export function createCombatSystem (
-  gameSubject: Subject<CombatUpdate>
-): System<[], GameWorld> {
+export function createCombatSystem (): (world: GameWorld) => CombatUpdate[] {
   const monsterQuery = defineQuery([Monster])
   const playerQuery = defineQuery([Player])
-  const combatSubject: Subject<CombatUpdate> = new Subject()
-  combatSubject.subscribe(gameSubject)
+  const shouldRun = everyDelta(1750)
 
-  return defineSystem(
-    everyDelta(1000, (world) => {
-      const monsters = monsterQuery(world)
-      const player = playerQuery(world)
+  return (world: GameWorld) => {
+    if (!shouldRun()) return []
+    const monsters = monsterQuery(world)
+    const player = playerQuery(world)
+    const updates: CombatUpdate[] = []
 
-      if (monsters.length > 0 && player.length > 0) {
-        const { attacker, defender, stats } = combat(world, player[0], monsters[0])
-        combatSubject.next({
-          source: 'combat',
-          attacker,
-          defender,
-          stats,
-          type: 'attack'
-        })
-      }
-    })
-  )
+    if (monsters.length > 0 && player.length > 0) {
+      const { attacker, defender, defenderStats, attackerStats } = combat(
+        world,
+        player[0],
+        monsters[0]
+      )
+
+      updates.push({
+        source: 'combat',
+        type: 'attack',
+        attacker,
+        defender,
+        defenderStats,
+        attackerStats
+      })
+    }
+    return updates
+  }
 }

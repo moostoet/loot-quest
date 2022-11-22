@@ -64,7 +64,7 @@ export function createSpawnSystem<S extends SpawnUpdate> (
   return defineSystem(
     everyDelta(1000, (world) => {
       const monsters = monsterQuery(world)
-      console.log('monsters: ', monsters)
+      // console.log('monsters yesss: ', monsters)
 
       if (monsters.length === 0) {
         const { type, stats } = spawn(world)

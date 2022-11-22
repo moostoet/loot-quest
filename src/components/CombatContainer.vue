@@ -2,7 +2,7 @@
   <div class="flex flex-row gap-3">
     <div>
       <p>
-        {{}}
+        {{ player?.stats }}
       </p>
     </div>
     <div v-if="enemy">
@@ -20,6 +20,7 @@ import { get, set } from '@vueuse/core'
 import { filter, Observer, Subject } from 'rxjs'
 import { cond, pathEq, propEq, T } from 'ramda'
 
+import { Player } from '../typings/interfaces/player'
 import { Enemy } from '../typings/interfaces/enemy'
 import { GameUpdate, initialiseWorld } from '../game/init'
 import { SpawnUpdate } from '../typings/types/updates/spawn'
@@ -27,11 +28,13 @@ import { MonsterNames } from '../typings/types/monsterTypes'
 import Monster from '../game/components/monster'
 import { CombatUpdateBase } from '../typings/types/updates/combat'
 import { CombatUpdate } from '../game/systems/combat'
-import { pipe } from 'bitecs'
+import { PlayerUpdate } from '../game/systems/player'
 
 const gameSubject = initialiseWorld()
 
 const enemy = ref<Enemy | null>(null)
+
+const player = ref<Player | null>(null)
 
 // const updateEnemy = (update: SpawnUpdate) => {
 //     console.log("updateEnemy");
@@ -71,9 +74,26 @@ const pipeBySource =
 //     },
 // };
 
+const updatePlayer: Observer<PlayerUpdate> = {
+  next(update) {
+    console.log('playerUpdate: ', update)
+    const playerData = {
+      id: update.id,
+      stats: update.stats
+    }
+    set(player, playerData)
+  },
+  error() {
+    console.log('error')
+  },
+  complete() {
+    console.log('complete')
+  }
+}
+
 const updateEnemy: Observer<SpawnUpdate> = {
   next(update) {
-    console.log('enemyUpdate ', update)
+    // console.log('enemyUpdate ', update)
     const enemyData = {
       type: update.type,
       stats: update.stats
@@ -91,13 +111,18 @@ const updateEnemy: Observer<SpawnUpdate> = {
 
 const updateCombat: Observer<CombatUpdate> = {
   next(update) {
-    console.log(update);
-    if (update.type === "attack") {
-        const enemyData = {
-            type: get(enemy)?.type,
-            stats: update.stats
-        }
-        set(enemy, enemyData);
+    // console.log(update);
+    if (update.type === 'attack') {
+      const enemyData = {
+        type: get(enemy)?.type,
+        stats: update.defenderStats
+      }
+      const playerData = {
+        id: get(player)?.id,
+        stats: update.attackerStats
+      }
+      set(enemy, enemyData)
+      set(player, playerData)
     }
   },
   error() {
@@ -110,7 +135,11 @@ const updateCombat: Observer<CombatUpdate> = {
 
 onMounted(() => {
   console.log('mounted')
+  // @ts-expect-error
+  pipeBySource<PlayerUpdate, 'player'>('player')(updatePlayer)
+  // @ts-expect-error
   pipeBySource<SpawnUpdate, 'spawn'>('spawn')(updateEnemy)
+  // @ts-expect-error
   pipeBySource<CombatUpdate, 'combat'>('combat')(updateCombat)
 })
 </script>

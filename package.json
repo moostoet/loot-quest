@@ -12,6 +12,7 @@
     "@vueuse/core": "^9.5.0",
     "bitecs": "^0.3.38",
     "ramda": "^0.28.0",
+    "reactivecs": "^0.2.1",
     "rxjs": "^7.5.7",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6"

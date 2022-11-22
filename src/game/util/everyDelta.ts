@@ -1,16 +1,11 @@
-import { GameWorld } from '../../typings/types/world'
-
-export const everyDelta = (
-  delta: number,
-  fn: (world: GameWorld) => any
-): ((world: GameWorld) => GameWorld) => {
+export const everyDelta = (delta: number): (() => boolean) => {
   let lastRun: number = -delta
-  return (world: GameWorld): GameWorld => {
+  return (): boolean => {
     const now = performance.now()
     if (now - lastRun > delta) {
       lastRun = now
-      fn(world)
+      return true
     }
-    return world
+    return false
   }
 }
