@@ -1,51 +1,61 @@
-import { defineQuery, defineSystem, System } from 'bitecs'
+import { addComponent, defineQuery, exitQuery } from 'bitecs'
 import { TurnUpdateBase } from '../../typings/types/updates/turn'
+import { Turn } from '../../typings/types/turn'
 import { GameWorld } from '../../typings/types/world'
 import Monster from '../components/monster'
 import Player from '../components/player'
 import { everyDelta } from '../util/everyDelta'
+import Active from '../components/turn'
 
 export interface TurnData {
   current: number
-  count: number
 }
 
 export type TurnUpdate = TurnUpdateBase<'next', TurnData>
 
+export const createInitialTurn = (): Turn => ({
+  current: 1,
+  count: 0
+})
+
 const nextTurn = (
   world: GameWorld,
   player: number,
-  monsters: number[]
+  monsters: number[],
+  turn: number
 ): TurnData => {
-  console.log(world.turn.current)
-  if (world.turn.current === monsters[0]) {
-    world.turn.current = player
-    world.turn.count++
-    console.log('Player turn ', world.turn)
+  console.log(turn)
+  if (turn === undefined) turn = 1
+
+  if (turn === monsters[0]) {
+    turn = player
+    addComponent(world, Active, player)
   } else {
-    world.turn.current = monsters[0]
-    world.turn.count++
-    console.log('Monster turn', world.turn)
+    turn = monsters[0]
+    addComponent(world, Active, monsters[0])
   }
+
   const turnData: TurnData = {
-    current: world.turn.current,
-    count: world.turn.count
+    current: turn
   }
 
   return turnData
 }
 
-export function createTurnSystem (): System<[], GameWorld> {
+export function createTurnSystem (): (world: GameWorld) => [] {
   const playerQuery = defineQuery([Player])
   const monsterQuery = defineQuery([Monster])
+  const activeQuery = defineQuery([Active])
+  const exitedActiveQuery = exitQuery(activeQuery)
+  const shouldRun = everyDelta(1750)
 
-  return defineSystem(
-    everyDelta(1750, (world) => {
-      const player = playerQuery(world)[0]
-      const monsters = monsterQuery(world)
+  return (world: GameWorld) => {
+    if (!shouldRun()) return []
+    const player = playerQuery(world)[0]
+    const monsters = monsterQuery(world)
+    const exitedActive = exitedActiveQuery(world)
 
-      const { current, count } = nextTurn(world, player, monsters)
-      console.log(current, count)
-    })
-  )
+    nextTurn(world, player, monsters, exitedActive[0])
+    return []
+  }
 }

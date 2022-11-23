@@ -1,21 +1,20 @@
 <template>
-  <div class="flex flex-row gap-3">
-    <div>
-      <p>
-        {{ player?.stats }}
-      </p>
+  <div class="flex flex-row gap-3 items-center justify-center">
+    <div v-if="player" class="flex flex-1 flex-col gap-3 items-center">
+      <p class="text-2xl font-bold">Player</p>
+      <div class>Health</div>
+      <HealthBar :entity="player" :totalHP="playerHP" />
     </div>
-    <div v-if="enemy">
-      <p>
-        {{ MonsterNames[enemy.type] }}
-        {{ enemy.stats }}
-      </p>
+    <div v-if="enemy" class="flex flex-1 flex-col gap-3 items-center">
+      <p class="text-2xl font-bold">{{ MonsterNames[enemy.type] }}</p>
+      <div class>Health</div>
+      <HealthBar :entity="enemy" :totalHP="enemyHP" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { get, set } from '@vueuse/core'
 import { filter, Observer, Subject } from 'rxjs'
 import { cond, pathEq, propEq, T } from 'ramda'
@@ -29,12 +28,23 @@ import Monster from '../game/components/monster'
 import { CombatUpdateBase } from '../typings/types/updates/combat'
 import { CombatUpdate } from '../game/systems/combat'
 import { PlayerUpdate } from '../game/systems/player'
+import HealthBar from '../components/HealthBar.vue'
 
 const gameSubject = initialiseWorld()
 
 const enemy = ref<Enemy | null>(null)
 
 const player = ref<Player | null>(null)
+
+const playerHP = computed(() => {
+  if (!get(player)) return 0
+  return (get(player)!.stats.currentHealth / get(player)!.stats.maxHealth) * 100
+})
+
+const enemyHP = computed(() => {
+  if (!get(enemy)) return 0
+  return (get(enemy)!.stats.currentHealth / get(enemy)!.stats.maxHealth) * 100
+})
 
 // const updateEnemy = (update: SpawnUpdate) => {
 //     console.log("updateEnemy");
@@ -76,12 +86,13 @@ const pipeBySource =
 
 const updatePlayer: Observer<PlayerUpdate> = {
   next(update) {
-    console.log('playerUpdate: ', update)
-    const playerData = {
-      id: update.id,
-      stats: update.stats
+    if (update.type === 'init') {
+      const playerData = {
+        id: update.id,
+        stats: update.stats
+      }
+      set(player, playerData)
     }
-    set(player, playerData)
   },
   error() {
     console.log('error')
@@ -111,18 +122,22 @@ const updateEnemy: Observer<SpawnUpdate> = {
 
 const updateCombat: Observer<CombatUpdate> = {
   next(update) {
-    // console.log(update);
     if (update.type === 'attack') {
-      const enemyData = {
-        type: get(enemy)?.type,
-        stats: update.defenderStats
+      if (update.attacker === 0) {
+        console.log('player attacked')
+        const enemyData = {
+          type: get(enemy)?.type,
+          stats: update.defenderStats
+        }
+        set(enemy, enemyData)
+      } else {
+        console.log('enemy attacked')
+        const playerData = {
+          id: get(player)?.id,
+          stats: update.defenderStats
+        }
+        set(player, playerData)
       }
-      const playerData = {
-        id: get(player)?.id,
-        stats: update.attackerStats
-      }
-      set(enemy, enemyData)
-      set(player, playerData)
     }
   },
   error() {

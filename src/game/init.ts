@@ -1,64 +1,32 @@
-import { createWorld, pipe } from 'bitecs'
-import { Subject } from 'rxjs'
+import { createWorld } from 'bitecs'
+import { mergeWith, Observable, of } from 'rxjs'
 import { reactivecs } from 'reactivecs'
 import { CombatUpdate, createCombatSystem } from './systems/combat'
-import { createPlayerSystem } from './systems/player'
+import { createInitialPlayer, createPlayerSystem, PlayerUpdate } from './systems/player'
 import { SpawnUpdate, createSpawnSystem } from './systems/spawn'
-import { createTimeSystem } from './systems/time'
-import { createTurnSystem } from './systems/turn'
+import { createInitialTime, createTimeSystem } from './systems/time'
+import { createInitialTurn, createTurnSystem } from './systems/turn'
 
-export type GameUpdate = CombatUpdate | SpawnUpdate
+export type GameUpdate = CombatUpdate | SpawnUpdate | PlayerUpdate
 
-const createInitialTime = (): {
-  then: number
-  delta: number
-  elapsed: number
-} => ({
-  then: performance.now(),
-  delta: 0,
-  elapsed: 0
-})
-
-const createInitialTurn = (): {
-  current: number
-  count: number
-} => ({
-  current: 1,
-  count: 0
-})
-
-export const initialiseWorld = (): Subject<GameUpdate> => {
+export const initialiseWorld = (): Observable<GameUpdate> => {
   const world = createWorld({
     time: createInitialTime(),
     turn: createInitialTurn()
   })
 
-  // const player = addEntity(world)
-  // addComponent(world, Player, player)
-  // addComponent(world, Stats, player)
-  // Stats.health[player] = 100
-  // Stats.attack[player] = 1
-  // Stats.armor[player] = 0
-  // Stats.shields[player] = 0
-
-  const gameUpdates = new Subject<GameUpdate>()
-
-  const pipeline = pipe(
-    createTimeSystem(),
-    // @ts-expect-error
-    createPlayerSystem(gameUpdates),
-    // @ts-expect-error
-    createSpawnSystem(gameUpdates),
-    createTurnSystem(),
-    // @ts-expect-error
-    createCombatSystem(gameUpdates)
+  const updates = reactivecs(
+    [
+      createTimeSystem(),
+      createPlayerSystem(),
+      createSpawnSystem(),
+      createTurnSystem(),
+      createCombatSystem()
+    ],
+    world,
+    1000 / 60
   )
 
-  // const systemObs = reactivecs([createTimeSystem()], world, 1000 / 60)
-
-  // reactivecs()
-
-  setInterval(() => pipeline(world), 1000 / 60)
-
-  return gameUpdates
+  const initialPlayer = createInitialPlayer(world)
+  return updates.pipe(mergeWith(of(initialPlayer)))
 }

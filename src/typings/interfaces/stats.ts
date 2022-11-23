@@ -1,6 +1,8 @@
 export interface IStats {
-  health: number
+  maxHealth: number
+  currentHealth: number
   attack: number
   armor: number
-  shields: number
+  currentShields: number
+  maxShields: number
 }
